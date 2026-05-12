@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>📖 Your Story</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Andika:ital,wght@0,400;0,700;1,400&family=Grandstander:wght@600;800&display=swap" rel="stylesheet"/>
+  <style>
+    /* ── DESIGN TOKENS ───────────────────────────── */
+    :root {
+      --cream:      #fdf6e9;
+      --parchment:  #f5e9cc;
+      --warm:       #ede0c4;
+      --ink:        #2c1a0e;
+      --ink-soft:   #5a3e28;
+      --rust:       #c04a1e;
+      --gold:       #e8a020;
+      --sage:       #5a7a52;
+      --sky-card:   #daeef8;
+      --rose-card:  #fce8e8;
+      --mint-card:  #dff2ea;
+      --sun-card:   #fef3d0;
+      --lav-card:   #ece8f8;
+      --shadow:     0 10px 36px rgba(80,40,10,0.14);
+      --shadow-lg:  0 18px 54px rgba(80,40,10,0.20);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--cream);
+      background-image:
+        radial-gradient(circle, rgba(180,130,60,0.07) 1px, transparent 1px),
+        linear-gradient(175deg, #fce9c8 0%, #fdf6e9 20%, #f7f0e2 65%, #fce9c8 100%);
+      background-size: 28px 28px, 100% 100%;
+      font-family: 'Andika', sans-serif;
+      color: var(--ink);
+      overflow-x: hidden;
+    }
+
+    /* ── PROGRESS BAR ────────────────────────────── */
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 4px; width: 0%;
+      background: linear-gradient(90deg, var(--rust), var(--gold), var(--sage));
+      z-index: 999;
+      border-radius: 0 4px 4px 0;
+      box-shadow: 0 0 10px rgba(192,74,30,0.45);
+      transition: width 0.1s linear;
+    }
+
+    /* ── DRIFTING CLOUDS ─────────────────────────── */
+    .clouds {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 90px; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .cloud {
+      position: absolute;
+      background: rgba(255,255,255,0.72);
+      border-radius: 50px; filter: blur(2px);
+    }
+    .cloud::before, .cloud::after {
+      content: ''; position: absolute;
+      background: inherit; border-radius: 50%;
+    }
+    .c1 { width:110px; height:32px; top:24px; left:-130px; animation: float 30s linear infinite; }
+    .c1::before { width:52px; height:46px; top:-22px; left:16px; }
+    .c1::after  { width:40px; height:36px; top:-14px; left:50px; }
+    .c2 { width:85px; height:26px; top:50px; left:-105px; animation: float 42s linear 12s infinite; opacity:.5; }
+    .c2::before { width:42px; height:36px; top:-18px; left:12px; }
+    .c3 { width:130px; height:34px; top:14px; left:-155px; animation: float 36s linear 6s infinite; opacity:.4; }
+    .c3::before { width:50px; height:44px; top:-20px; left:26px; }
+    @keyframes float { from { transform: translateX(0) } to { transform: translateX(calc(100vw + 200px)) } }
+
+    /* ── PAGE LAYOUT ─────────────────────────────── */
+    .page {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 20px 100px;
+    }
+
+    /* ── TOP BAR ─────────────────────────────────── */
+    .topbar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 22px 0 0;
+      animation: riseUp 0.5s ease both;
+    }
+
+    .btn-home {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 22px;
+      background: var(--ink); color: var(--cream);
+      border: none; border-radius: 40px;
+      font-family: 'Grandstander', cursive;
+      font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 14px rgba(44,26,14,0.25);
+      transition: background 0.18s, transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-home:hover {
+      background: var(--rust);
+      transform: translateY(-2px);
+      box-shadow: 0 7px 20px rgba(192,74,30,0.35);
+    }
+
+    .topbar-label {
+      font-family: 'Grandstander', cursive;
+      font-size: 0.82rem; font-weight: 600;
+      color: var(--ink-soft);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── BOOK HEADER ─────────────────────────────── */
+    .book-header {
+      text-align: center;
+      padding: 38px 0 30px;
+      animation: riseUp 0.6s ease 0.1s both;
+    }
+
+    .book-badge {
+      display: inline-block;
+      padding: 5px 18px;
+      background: var(--parchment);
+      border: 2px solid var(--gold);
+      border-radius: 20px;
+      font-family: 'Grandstander', cursive;
+      font-size: 0.7rem; font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .book-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.9rem, 7vw, 2.9rem);
+      line-height: 1.18;
+      color: var(--ink);
+      text-shadow: 2px 3px 0 rgba(192,74,30,0.11);
+      margin-bottom: 10px;
+    }
+
+    .wavy-line {
+      display: block; width: 130px; height: 7px;
+      margin: 0 auto;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='130' height='7'%3E%3Cpath d='M0 3.5 Q16 0 32 3.5 Q48 7 64 3.5 Q80 0 96 3.5 Q112 7 130 3.5' stroke='%23e8a020' stroke-width='2.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center / contain no-repeat;
+    }
+
+    /* ── AUDIO CARD ──────────────────────────────── */
+    .audio-wrap {
+      margin-bottom: 38px;
+      animation: riseUp 0.6s ease 0.2s both;
+    }
+
+    .audio-card {
+      display: flex; align-items: center; gap: 16px;
+      background: var(--parchment);
+      border: 2px solid var(--warm);
+      border-radius: 22px;
+      padding: 18px 22px;
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255,255,255,0.55);
+    }
+
+    .audio-icon {
+      width: 50px; height: 50px; flex-shrink: 0;
+      background: linear-gradient(135deg, #f9a825, #e8602c);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.55rem;
+      box-shadow: 0 4px 14px rgba(232,96,44,0.32);
+    }
+
+    .audio-info { flex: 1; min-width: 0; }
+
+    .audio-label {
+      font-family: 'Grandstander', cursive;
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--rust);
+      margin-bottom: 6px;
+    }
+
+    audio {
+      width: 100%; height: 34px;
+      border-radius: 8px;
+      accent-color: var(--rust);
+    }
+
+    /* ── CHAPTERS STACK ──────────────────────────── */
+    .chapters { display: flex; flex-direction: column; gap: 40px; }
+
+    /* ── CHAPTER CARD ────────────────────────────── */
+    .chapter-card {
+      display: flex;
+      flex-direction: row;
+      align-items: stretch;
+      border-radius: 26px;
+      overflow: hidden;
+      border: 2.5px solid rgba(180,130,60,0.17);
+      box-shadow: var(--shadow-lg);
+      opacity: 0;
+      transform: translateY(38px) scale(0.985);
+      transition:
+        opacity 0.65s cubic-bezier(.22,1,.36,1),
+        transform 0.65s cubic-bezier(.22,1,.36,1),
+        box-shadow 0.25s ease;
+    }
+    .chapter-card.visible {
+      opacity: 1; transform: translateY(0) scale(1);
+    }
+    .chapter-card:hover {
+      box-shadow: 0 24px 64px rgba(80,40,10,0.22);
+      transform: translateY(-4px) scale(1.006);
+    }
+    .chapter-card.reverse {
+      flex-direction: row-reverse;
+    }
+
+    .tint-0 { background: var(--sky-card); }
+    .tint-1 { background: var(--rose-card); }
+    .tint-2 { background: var(--mint-card); }
+    .tint-3 { background: var(--sun-card); }
+    .tint-4 { background: var(--lav-card); }
+
+    /* ── IMAGE ───────────────────────────────────── */
+    .img-wrap {
+      position: relative; flex: 0 0 45%; overflow: hidden;
+      min-height: 250px;
+    }
+
+    .chapter-img {
+      width: 100%; height: 100%;
+      object-fit: cover; display: block;
+      transition: transform 0.55s ease;
+    }
+    .chapter-card:hover .chapter-img { transform: scale(1.06); }
+
+    .img-fallback {
+      display: none; width: 100%; height: 100%;
+      align-items: center; justify-content: center;
+      font-size: 5rem;
+    }
+    .fb-0 { background: linear-gradient(135deg,#a8d8ea,#5bacd4); }
+    .fb-1 { background: linear-gradient(135deg,#f9b7b7,#e07070); }
+    .fb-2 { background: linear-gradient(135deg,#b8e8d0,#58c996); }
+    .fb-3 { background: linear-gradient(135deg,#fdeaaa,#f0c230); }
+    .fb-4 { background: linear-gradient(135deg,#d8d0f0,#9070d0); }
+
+    /* chapter number stamp */
+    .ch-stamp {
+      position: absolute; top: 18px; left: 18px; z-index: 2;
+      width: 44px; height: 44px;
+      background: var(--ink); color: var(--cream);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.2rem;
+      border: 3px solid rgba(255,255,255,0.22);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.28);
+    }
+
+    /* ── CHAPTER BODY ────────────────────────────── */
+    .ch-body { 
+      flex: 1; 
+      padding: 45px 50px; 
+      display: flex; 
+      flex-direction: column; 
+      justify-content: center; 
+    }
+
+    .ch-eyebrow {
+      display: flex; align-items: center; gap: 6px;
+      font-family: 'Grandstander', cursive;
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--rust); margin-bottom: 7px;
+    }
+    .ch-eyebrow::before {
+      content: '';
+      display: inline-block; width: 20px; height: 2px;
+      background: var(--rust); border-radius: 2px;
+    }
+
+    .ch-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.32rem;
+      color: var(--ink);
+      margin-bottom: 13px; line-height: 1.28;
+    }
+
+    .ch-text {
+      font-family: 'Andika', sans-serif;
+      font-size: 1.04rem; line-height: 1.9;
+      color: var(--ink-soft);
+    }
+
+    /* big drop cap */
+    .ch-text::first-letter {
+      font-family: 'Fredoka One', cursive;
+      font-size: 3.1rem;
+      float: left; line-height: 0.75;
+      margin: 7px 8px 0 0;
+      color: var(--rust);
+    }
+
+    .dots-divider {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 0.85rem;
+      letter-spacing: 6px;
+      color: var(--ink-soft);
+      opacity: 0.35;
+    }
+
+    /* ── THE END ─────────────────────────────────── */
+    .end-card {
+      text-align: center;
+      background: linear-gradient(135deg, var(--parchment), var(--warm));
+      border: 2.5px dashed var(--gold);
+      border-radius: 26px;
+      padding: 46px 32px;
+      box-shadow: var(--shadow);
+      margin-top: 40px;
+      opacity: 0; transform: translateY(36px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .end-card.visible { opacity: 1; transform: translateY(0); }
+
+    .end-emoji { font-size: 3.5rem; display: block; margin-bottom: 10px; }
+    .end-title {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.2rem; color: var(--ink); margin-bottom: 8px;
+    }
+    .end-sub {
+      font-size: 0.95rem; color: var(--ink-soft);
+      line-height: 1.65; margin-bottom: 24px;
+    }
+    .btn-new {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 14px 30px;
+      background: var(--rust); color: #fff;
+      border: none; border-radius: 40px;
+      font-family: 'Grandstander', cursive;
+      font-size: 0.92rem; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      box-shadow: 0 6px 20px rgba(192,74,30,0.38);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-new:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(192,74,30,0.48); }
+
+    /* ── NO DATA ─────────────────────────────────── */
+    .no-data { text-align: center; padding: 80px 20px; }
+    .no-data-emoji { font-size: 4rem; display: block; margin-bottom: 16px; }
+    .no-data h2 { font-family: 'Fredoka One', cursive; font-size: 1.6rem; margin-bottom: 10px; }
+    .no-data p { color: var(--ink-soft); font-size: 0.95rem; margin-bottom: 24px; }
+
+    /* ── ANIMATIONS ──────────────────────────────── */
+    @keyframes riseUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 800px) {
+      .chapter-card, .chapter-card.reverse { flex-direction: column; }
+      .img-wrap { flex: none; width: 100%; height: 280px; }
+      .ch-body { padding: 30px 25px 35px; }
+      .book-title { font-size: 2.2rem; }
+    }
+    @media (max-width: 500px) {
+      .img-wrap { height: 200px; }
+      .book-title { font-size: 1.75rem; }
+      .ch-body { padding: 20px 18px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="progress"></div>
+
+  <div class="clouds">
+    <div class="cloud c1"></div>
+    <div class="cloud c2"></div>
+    <div class="cloud c3"></div>
+  </div>
+
+  <div class="page">
+
+    <!-- Top bar -->
+    <div class="topbar">
+      <a href="/" class="btn-home">← Back to Home</a>
+      <span class="topbar-label">📖 Storybook</span>
+    </div>
+
+    <!-- Book header -->
+    <div class="book-header">
+      <div class="book-badge">✨ Your Magical Story</div>
+      <h1 class="book-title" id="bookTitle">Loading…</h1>
+      <span class="wavy-line"></span>
+    </div>
+
+    <!-- Audio player (shown only when audio exists) -->
+    <div class="audio-wrap" id="audioWrap" style="display:none">
+      <div class="audio-card">
+        <div class="audio-icon">🎧</div>
+        <div class="audio-info">
+          <div class="audio-label">🎵 Story Narration</div>
+          <audio id="storyAudio" controls>
+            <source id="audioSrc" src="" type="audio/mpeg"/>
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter cards injected here -->
+    <div class="chapters" id="chapters"></div>
+
+    <!-- The End card -->
+    <div class="end-card" id="endCard">
+      <span class="end-emoji">🌟</span>
+      <div class="end-title">The End</div>
+      <p class="end-sub">What a wonderful adventure!<br>Ready to dream up another story?</p>
+      <a href="/" class="btn-new">✨ Create a New Story</a>
+    </div>
+
+  </div>
+
+  <script>
+    /* ── DATA ──────────────────────────────────────────── */
+    const TITLES = [
+      'Once Upon a Time…',
+      'The Journey Begins',
+      'A Twist in the Tale',
+      'The Great Challenge',
+      'Happily Ever After'
+    ];
+    const ICONS = ['🌅', '🌿', '⚡', '🌊', '🏰'];
+    const FALLBACKS = ['🏰', '🌲', '⚡', '🌊', '🌟'];
+
+    /* ── SPLIT STORY ───────────────────────────────────── */
+    function splitStory(text) {
+      // Try double-newline paragraph split first
+      let parts = text.split(/\n{2,}/).map(s => s.trim()).filter(s => s.length > 40);
+
+      // Fall back to sentence grouping (targets 4 chunks)
+      if (parts.length < 2) {
+        const sentences = text.match(/[^.!?…]+[.!?…]+(?:\s|$)/g) || [text];
+        const perChunk = Math.ceil(sentences.length / 4);
+        parts = [];
+        for (let i = 0; i < sentences.length; i += perChunk) {
+          const chunk = sentences.slice(i, i + perChunk).join('').trim();
+          if (chunk) parts.push(chunk);
+        }
+      }
+
+      // Merge down to max 5 chapters by collapsing shortest adjacent pair
+      while (parts.length > 5) {
+        let idx = 0;
+        for (let i = 1; i < parts.length - 1; i++) {
+          if (parts[i].length < parts[idx].length) idx = i;
+        }
+        const merge = idx < parts.length - 1 ? idx : idx - 1;
+        parts.splice(merge, 2, parts[merge] + '\n\n' + parts[merge + 1]);
+      }
+
+      return parts.slice(0, 5);
+    }
+
+    /* ── IMAGE URL ──────────────────────────────────────── */
+    function imageUrl(base, idx) {
+      // Use API-provided image if it's a real URL
+      if (base && /^https?:\/\//.test(base)) return base;
+      // Varied Unsplash fallback per chapter
+      const queries = [
+        'fairy+tale+castle+children+magical',
+        'enchanted+forest+adventure+storybook',
+        'fantasy+landscape+glowing+kids',
+        'ocean+waves+treasure+adventure',
+        'meadow+flowers+sunset+fairy+tale'
+      ];
+      return `https://loremflickr.com/800/440/${queries[idx % queries.length]}?lock=${idx + 13}`;
+    }
+
+    /* ── ESCAPE HTML ──────────────────────────────────── */
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    /* ── RENDER PAGE ──────────────────────────────────── */
+    function render() {
+const story = localStorage.getItem('story') || '';
+const audio = localStorage.getItem('audio') || '';
+const image = localStorage.getItem('image') || '';
+const topic = localStorage.getItem('topic') || 'A Magical Story';
+
+      const container = document.getElementById('chapters');
+
+      /* ── No story ── */
+      if (!story) {
+        container.innerHTML = `
+          <div class="no-data">
+            <span class="no-data-emoji">📭</span>
+            <h2>No story found!</h2>
+            <p>Head back home and generate a story first.</p>
+            <a href="/" class="btn-new">← Go Back Home</a>
+          </div>`;
+        document.getElementById('bookTitle').textContent = 'Oops!';
+        document.getElementById('endCard').style.display = 'none';
+        return;
+      }
+
+      /* ── Title ── */
+      document.getElementById('bookTitle').textContent = topic;
+      document.title = `📖 ${topic}`;
+
+      /* ── Audio ── */
+      if (audio) {
+        document.getElementById('audioSrc').src = audio;
+        document.getElementById('storyAudio').load();
+        document.getElementById('audioWrap').style.display = 'block';
+      }
+
+      /* ── Chapters ── */
+      let parsedChapters = [];
+      try {
+        parsedChapters = JSON.parse(story);
+      } catch(e) {
+        // Fallback for old simple text stories
+        const parts = splitStory(story);
+        parsedChapters = parts.map((text, i) => ({
+          title: TITLES[i % 5],
+          content: text,
+          image_prompt: null
+        }));
+      }
+
+      parsedChapters.forEach((chapter, i) => {
+        const card = document.createElement('article');
+        card.className = `chapter-card tint-${i % 5} ${i % 2 !== 0 ? 'reverse' : ''}`;
+
+        const src = chapter.image_prompt 
+          ? `https://pollinations.ai/p/${encodeURIComponent(chapter.image_prompt)}?width=600&height=600&nologo=true` 
+          : imageUrl(image, i);
+
+        card.innerHTML = `
+          <div class="img-wrap">
+            <img
+              class="chapter-img"
+              style="display: none;"
+              alt="Illustration for chapter ${i + 1}"
+              onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+              onerror="this.nextElementSibling.innerHTML='<div style=\\'font-size: 1.2rem; color: #333;\\'>Image Failed</div>';"
+            />
+            <div class="img-fallback fb-${i % 5}" style="display: flex;">
+               <div style="font-size: 1.2rem; color: #333;">Generating...</div>
+            </div>
+            <div class="ch-stamp">${i + 1}</div>
+          </div>
+          <div class="ch-body">
+            <div class="ch-eyebrow">${ICONS[i % 5]} Chapter ${i + 1}</div>
+            <h2 class="ch-title">${esc(chapter.title)}</h2>
+            <p class="ch-text">${esc(chapter.content)}</p>
+            <div class="dots-divider">✦ ✦ ✦</div>
+          </div>
+        `;
+        container.appendChild(card);
+        
+        // Preload in the background automatically so they are ready before scrolling
+        const img = card.querySelector('.chapter-img');
+        setTimeout(() => {
+          img.src = src;
+        }, i * 600); // 600ms stagger
+      });
+    }
+
+    /* ── SCROLL FADE-IN ───────────────────────────────── */
+    function initIntersection() {
+      const items = document.querySelectorAll('.chapter-card, .end-card');
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            io.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+      items.forEach(el => io.observe(el));
+    }
+
+    /* ── READING PROGRESS ─────────────────────────────── */
+    window.addEventListener('scroll', () => {
+      const el = document.getElementById('progress');
+      const scrolled = document.documentElement.scrollTop;
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      el.style.width = total > 0 ? (scrolled / total * 100) + '%' : '0%';
+    }, { passive: true });
+
+    /* ── BOOT ─────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+      render();
+      initIntersection();
+    });
+  </script>
+</body>
+</html>
