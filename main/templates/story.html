@@ -476,15 +476,14 @@
     function imageUrl(base, idx) {
       // Use API-provided image if it's a real URL
       if (base && /^https?:\/\//.test(base)) return base;
-      // Varied Unsplash fallback per chapter
       const queries = [
-        'fairy+tale+castle+children+magical',
-        'enchanted+forest+adventure+storybook',
-        'fantasy+landscape+glowing+kids',
-        'ocean+waves+treasure+adventure',
-        'meadow+flowers+sunset+fairy+tale'
+        'fairy tale castle children magical',
+        'enchanted forest adventure storybook',
+        'fantasy landscape glowing kids',
+        'ocean waves treasure adventure',
+        'meadow flowers sunset fairy tale'
       ];
-      return `https://loremflickr.com/800/440/${queries[idx % queries.length]}?lock=${idx + 13}`;
+      return `https://source.unsplash.com/featured/800x600/?${encodeURIComponent(queries[idx % queries.length])}`;
     }
 
     /* ── ESCAPE HTML ──────────────────────────────────── */
@@ -544,9 +543,9 @@ const topic = localStorage.getItem('topic') || 'A Magical Story';
         const card = document.createElement('article');
         card.className = `chapter-card tint-${i % 5} ${i % 2 !== 0 ? 'reverse' : ''}`;
 
-        const src = chapter.image_prompt 
-          ? `https://pollinations.ai/p/${encodeURIComponent(chapter.image_prompt)}?width=600&height=600&nologo=true` 
-          : imageUrl(image, i);
+        const src = chapter.image_url || (chapter.image_prompt 
+          ? `https://source.unsplash.com/featured/600x600/?${encodeURIComponent(chapter.image_prompt)}` 
+          : imageUrl(image, i));
 
         card.innerHTML = `
           <div class="img-wrap">
